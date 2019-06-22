@@ -1,0 +1,15 @@
+{
+  "name": "jabr2sql",
+  "version": "1.0.0",
+  "description": "A program that converts Jabr to Sql.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "AliReza Beitari",
+  "license": "ISC",
+  "dependencies": {
+    "esprima": "^4.0.1",
+    "squel": "^5.12.2"
+  }
+}

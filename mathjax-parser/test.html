@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>dfsdf</title>
+</head>
+<body>
+	<script type="text/javascript">
+		
+		function test(input) {
+    		console.log(input);
+		}
+		
+		window.definedProp = 'preDefinedProp';
+
+		const str = `test(hello); test(world); test(foo); test(bar); test(definedProp)`;
+		const re = /(\w+)\s*\(([^()]*)\)/g;
+		let match;
+		while (match = re.exec(str)) {
+		  const [, fnName, parameterList] = match;
+		  const parameterArr = parameterList
+		    .split(/\s*,\s*/)
+		    .map(param => window.hasOwnProperty(param) ? window[param] : param);
+		  window[fnName].apply(this, parameterArr);
+		}
+
+	</script>
+</body>
+</html>

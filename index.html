@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Jabr2Sql</title>
+    <script src="/mousetrap.min.js"></script>
+    <script src="/squel-basic.js"></script>
+    <script src="/escodegen.browser.js"></script>
+    <script src="/esprima.js"></script>
+    <script src="/app.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Tinos" rel="stylesheet">
+    <style>
+        #myInput {
+            font-family: 'Tinos', serif;
+            font-size: 30px;
+            letter-spacing: 3px;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="runJabr()">Run</button><br><br>
+    <textarea id="myInput" rows="10" cols="60" class="mousetrap">∏(['c#','s#'], σ('avg>=10', 'stud'))</textarea><br><br>
+    <pre id="output"></pre>
+
+    <script>
+        var input = document.getElementById('myInput');
+        var charMap = {
+            '∏': 'SELECT',
+            'σ': 'FIND',
+            '∩': '*',
+        };
+
+        function insertAtCursor(myField, myValue) {
+            //IE support
+            if (document.selection) {
+                myField.focus();
+                sel = document.selection.createRange();
+                sel.text = myValue;
+            }
+            //MOZILLA and others
+            else if (myField.selectionStart || myField.selectionStart == '0') {
+                var startPos = myField.selectionStart;
+                var endPos = myField.selectionEnd;
+                myField.value = myField.value.substring(0, startPos)
+                    + myValue
+                    + myField.value.substring(endPos, myField.value.length);
+                myField.selectionStart = startPos + myValue.length; myField.selectionEnd = startPos + myValue.length;
+            } else {
+                myField.value += myValue;
+            }
+        }
+
+        Mousetrap.bind('ctrl+s', function (e) {
+            insertAtCursor(myInput, 'σ');
+
+            return false;
+        });
+
+
+        Mousetrap.bind('ctrl+p', function (e) {
+            insertAtCursor(myInput, '∏');
+
+            return false;
+        });
+
+        Mousetrap.bind('ctrl+u', function (e) {
+            insertAtCursor(myInput, '∪');
+
+            return false;
+        });
+
+        Mousetrap.bind('ctrl+i', function (e) {
+            insertAtCursor(myInput, '∩');
+
+            return false;
+        });
+
+        Mousetrap.bind('ctrl+z', function (e) {
+            insertAtCursor(myInput, '×');
+
+            return false;
+        });
+
+        function visitor(tree,visit){
+            for(i in tree){
+                visit(tree[i]);
+                if(typeof tree[i] === "object" && tree[i] !== null){
+                    visitor(tree[i],visit);
+                }
+            }
+        }
+
+        function evalThis (input) {
+            var syntax = esprima.parse(input);
+            visitor(syntax,function(el){
+                if(el.type === "BinaryExpression"){
+
+                    if (Object.keys(operators).indexOf(el.operator) !== -1){
+                        el.type = "CallExpression";
+                        el.callee = {
+                            name: operators[el.operator].name,
+                            type:"Identifier"
+                        };
+                        el.arguments = [el.left, el.right];
+                        delete el.operator;
+                        delete el.left;
+                        delete el.right;
+                    }
+                }
+            });
+
+            scriptToEvaluate = escodegen.generate(syntax)
+            return eval(scriptToEvaluate);
+        }
+
+        function runJabr() {
+            var q = myInput.value;
+            var result = '';
+
+            for (var i = 0; i < q.length; i++) {
+                if (q[i] in charMap) {
+                    result += charMap[q[i]];
+                }
+                else {
+                    result += q[i];
+                }
+            }
+
+            // support new operators
+            var tokens = esprima.FnExprTokens
+            , customOperators = Object.keys(operators);
+
+            for (var i = 0; i < customOperators.length; ++i) {
+                var cOp = customOperators[i];
+                if (tokens.indexOf(cOp) === -1) {
+                    tokens.push(cOp);
+                }
+                if (esprima.JohnnysProps.operators.indexOf(cOp) === -1) {
+                    esprima.JohnnysProps.operators.push(cOp);
+                }
+
+                if (esprima.JohnnysProps.custom.indexOf(cOp) === -1) {
+                    esprima.JohnnysProps.custom.push(cOp);
+                }
+            }
+
+            result = eval(evalThis(result)); 
+
+            OUTPUT(result);
+        }
+
+    </script>
+</body>
+</html>
