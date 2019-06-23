@@ -1,0 +1,78 @@
+html {
+  margin: 0 15%;
+  margin-bottom: 2em;
+}
+
+body {
+  color: #333;
+  font-family: 'Nunito', sans-serif;
+  line-height: 1.5;
+}
+
+h2 {
+  color: #007fff;
+  font-weight: normal;
+}
+
+pre, code {
+  background-color: #f1f1f1;
+  padding: 0.5em 0;
+}
+
+a {
+  color: #007fff;
+  text-decoration: none;
+}
+
+#header {
+  color: #9c0063;
+  font-size: 128px;
+  font-weight: normal;
+  margin: 0;
+}
+
+#equation-wrapper {
+  font-size: 48px;
+}
+
+.api-container {
+  overflow: hidden;
+}
+
+.api-container,
+.api-container h3 {
+  font-size: 14px;
+}
+
+.api-column {
+  float: left;
+  width: 33.333%;
+}
+
+.api-column h3:first-of-type {
+  margin-top: 0;
+}
+
+.tables-container {
+  overflow: hidden;
+}
+
+.tables-column {
+  float: left;
+  width: 50%;
+}
+
+.tables-column table {
+  width: 100%;
+}
+
+.tables-column td,
+.tables-column th {
+  text-align: center;
+}
+
+.upwards {
+  height: 32px;
+  margin-left: 5px;
+  vertical-align: text-bottom;
+}

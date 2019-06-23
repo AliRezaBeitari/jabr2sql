@@ -27,7 +27,7 @@
     <script>
         var input = document.getElementById('myInput');
         var charMap = {
-            '∏': 'SELECT',
+            'Π': 'SELECT',
             'σ': 'FIND',
             '∩': '*',
         };
@@ -60,7 +60,7 @@
 
 
         Mousetrap.bind('ctrl+p', function (e) {
-            insertAtCursor(myInput, '∏');
+            insertAtCursor(myInput, 'Π');
 
             return false;
         });

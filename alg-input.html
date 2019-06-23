@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Alg Input</title>
+    <link rel="stylesheet" href="mje.css">
+	<link rel="stylesheet" href="styles.css">
+    <style>
+        .buttons {
+            margin-bottom: 50px;
+        }
+
+        .buttons button {
+            /* font-family: MJXc-TeX-math-I, MJXc-TeX-math-Ix, MJXc-TeX-math-Iw; */
+            font-size: 30px;
+            padding: 10px 15px 10px 15px;
+            margin-right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="buttons">
+        <button onclick="func('σ');">σ</button>
+        <button onclick="func('Π');">Π</button>
+        <button onclick="func2('∪');">∪</button>
+        <button onclick="func2('∩');">∩</button>
+        <button onclick="func2('×');">×</button>
+        <!-- <button onclick="func('×');">×<sub>θ</sub></button> -->
+        <!-- <button onclick="func2('÷');">÷</button> -->
+        <!-- <button onclick="func2('←');">←</button> -->
+        <button onclick="func2('-');">-</button>
+        <button onclick="func2('∞');">∞</button>
+        <button onclick="func2('∝');">∝</button>
+        <!-- <button onclick="func3('ρ');">ρ</button> -->
+		<button onclick="run();">RUN</button>
+    </div>
+
+    <section id="equation-wrapper">
+        <div id="myEquation"></div>
+	</section>
+
+	<br><br><br>
+	<pre id="output"></pre>
+	
+	<script src="mousetrap.min.js"></script>
+    <script src="squel-basic.js"></script>
+    <script src="escodegen.browser.js"></script>
+    <script src="esprima.js"></script>
+    <script src="app.js"></script>
+
+    <script src="prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <script src="mje.js"></script>
+	<script src="jquery-3.4.1.min.js"></script>
+
+    <script>
+		window.charMap = {
+			'Π': 'SELECT',
+			'σ': 'FIND',
+			'∩': '*',
+		};
+
+        window.editor = mje('#myEquation');
+        window.editor.set('<math><msub><mrow><mi>Π</mi></mrow><mrow><mi>a</mi><mo>,</mo><mi>b</mi></mrow></msub><mo>(</mo><mi>s</mi><mi>t</mi><mi>u</mi><mi>d</mi><mo>)</mo><mi>∞</mi><msub><mrow><mi>σ</mi></mrow><mrow><mi>i</mi><mi>d</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>(</mo><mi>u</mi><mi>s</mi><mi>e</mi><mi>r</mi><mo>)</mo></math>');
+        
+        function func(inp) {
+            editor.sub();
+            editor.identifier(inp);
+        }
+
+        function func2(inp) {
+            editor.identifier(inp);
+        }
+
+        function func3(inp) {
+            editor.subsup();
+            editor.identifier(inp);
+        }
+		
+		function recursivelyParse(element) {
+			var res = "";
+			var functionIsOpen = false;
+			var lastWasId = false;
+
+			element.children().each(function () {
+				switch (this.nodeName) {
+					case "mo":
+					case "mi":
+					case "mn":
+						var _id = $(this).text();
+
+						if (functionIsOpen && _id == "(") {
+							functionIsOpen = false;
+							// res += '"';
+							// lastWasId = false;
+						}
+						else {
+							/*if (_id == ")" && lastWasId) {
+								res += '"';
+							}*/
+
+							res += _id;
+							lastWasId = true;
+						}
+
+						break;
+
+					case "msub":
+						var func = recursivelyParse($(this).children().first());
+						var inner = recursivelyParse($(this).children().last());
+
+						console.log("function: " + func);
+						console.log("params: " + inner);
+						console.log("-----------------------");
+
+						functionIsOpen = true;
+						
+						if (func == "Π") {
+							inner = inner.split(",").map(p => '"' + p + '"').join(", ");
+							res += func + "([" + inner + "], ";
+						}
+						else if (func == "σ") {
+							res += func + "(\"" + inner + "\", ";
+						}
+
+						break;
+				}
+			});
+
+			return res.trim();
+		}
+		
+		function run() {
+			var result = "";			
+			var input = editor.get();
+			// var root = $($.parseHTML(input));
+
+			var root = $(input);
+			
+			result = recursivelyParse(root);
+			result = result.replace(/\(([^Πσ]+), (\w+)\)/g, '($1, "$2")');
+			
+			// runJabr('"a"×"b"');
+			runJabr(result);
+		}
+
+		function visitor(tree,visit){
+            for(i in tree){
+                visit(tree[i]);
+                if(typeof tree[i] === "object" && tree[i] !== null){
+                    visitor(tree[i],visit);
+                }
+            }
+        }
+
+		function evalThis (input) {
+            var syntax = esprima.parse(input);
+            visitor(syntax,function(el){
+                if(el.type === "BinaryExpression"){
+
+                    if (Object.keys(operators).indexOf(el.operator) !== -1){
+                        el.type = "CallExpression";
+                        el.callee = {
+                            name: operators[el.operator].name,
+                            type:"Identifier"
+                        };
+                        el.arguments = [el.left, el.right];
+                        delete el.operator;
+                        delete el.left;
+                        delete el.right;
+                    }
+                }
+            });
+
+            scriptToEvaluate = escodegen.generate(syntax)
+            return eval(scriptToEvaluate);
+        }
+
+		function runJabr(q) {
+            var result = '';
+
+            for (var i = 0; i < q.length; i++) {
+                if (q[i] in charMap) {
+                    result += charMap[q[i]];
+                }
+                else {
+                    result += q[i];
+                }
+            }
+
+            // support new operators
+            var tokens = esprima.FnExprTokens
+            , customOperators = Object.keys(operators);
+
+            for (var i = 0; i < customOperators.length; ++i) {
+                var cOp = customOperators[i];
+                if (tokens.indexOf(cOp) === -1) {
+                    tokens.push(cOp);
+                }
+                if (esprima.JohnnysProps.operators.indexOf(cOp) === -1) {
+                    esprima.JohnnysProps.operators.push(cOp);
+                }
+
+                if (esprima.JohnnysProps.custom.indexOf(cOp) === -1) {
+                    esprima.JohnnysProps.custom.push(cOp);
+                }
+            }
+
+            result = eval(evalThis(result)); 
+
+            OUTPUT(result);
+        }
+    </script>
+</body>
+</html>

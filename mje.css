@@ -1,0 +1,30 @@
+.mje-container {
+  cursor: text;
+}
+
+.mje-container * {
+  outline: none !important;
+}
+
+.mje-cursor {
+  background-color: #000;
+  position: fixed;
+  width: 1px;
+}
+
+.mje-cursor.hidden {
+  display: none;
+}
+
+.mje-input {
+  border: none;
+  height: 0;
+  opacity: 0;
+  padding: 0;
+  position: fixed;
+  width: 0;
+}
+
+.mje-placeholder {
+  color: #ccc;
+}

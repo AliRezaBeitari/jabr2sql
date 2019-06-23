@@ -2443,6 +2443,22 @@ function _buildSquel() {
         this.join(table, alias, condition, 'LEFT');
       }
     }, {
+      key: 'natural_join',
+      value: function natural_join(table) {
+        var alias = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+        var condition = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
+        this.join(table, alias, condition, 'NATURAL');
+      }
+    }, {
+      key: 'semijoin_join',
+      value: function natural_join(table) {
+        var alias = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+        var condition = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
+        this.join(table, alias, condition, 'LEFT SEMIJOIN');
+      }
+    }, {
       key: 'right_join',
       value: function right_join(table) {
         var alias = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
@@ -2632,6 +2648,13 @@ function _buildSquel() {
           type: type,
           table: table
         });
+      }
+    }, {
+      key: 'getFields',
+      value: function getFields() {
+        for (var i = 0; i < this._fields.length; i++) {
+          console.log(this._fields[i].name);
+        }
       }
     }, {
       key: 'union_all',
